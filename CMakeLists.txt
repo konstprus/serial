@@ -1,30 +1,14 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(serial)
-
-# Find catkin
-find_package(catkin REQUIRED)
+cmake_minimum_required(VERSION 3.28)
+project(serial VERSION 1.2.2 LANGUAGES CXX)
 
 if(APPLE)
     find_library(IOKIT_LIBRARY IOKit)
     find_library(FOUNDATION_LIBRARY Foundation)
 endif()
 
-if(UNIX AND NOT APPLE)
-    # If Linux, add rt and pthread
-    set(rt_LIBRARIES rt)
-    set(pthread_LIBRARIES pthread)
-    catkin_package(
-        LIBRARIES ${PROJECT_NAME}
-        INCLUDE_DIRS include
-        DEPENDS rt pthread
-    )
-else()
-    # Otherwise normal call
-    catkin_package(
-        LIBRARIES ${PROJECT_NAME}
-        INCLUDE_DIRS include
-    )
-endif()
+set(PKG_INC_DESTINATION include)
+set(PKG_LIB_DESTINATION lib)
+set(PKG_BIN_DESTINATION bin)
 
 ## Sources
 set(serial_SRCS
@@ -55,27 +39,28 @@ elseif(UNIX)
 else()
     target_link_libraries(${PROJECT_NAME} setupapi)
 endif()
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-## Uncomment for example
-add_executable(serial_example examples/serial_example.cc)
-add_dependencies(serial_example ${PROJECT_NAME})
-target_link_libraries(serial_example ${PROJECT_NAME})
 
-## Include headers
-include_directories(include)
+
+if(BUILD_EXAMPLES)
+    add_executable(serial_example examples/serial_example.cc)
+    add_dependencies(serial_example ${PROJECT_NAME})
+    target_link_libraries(serial_example ${PROJECT_NAME})
+endif()
 
 ## Install executable
 install(TARGETS ${PROJECT_NAME}
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+    ARCHIVE DESTINATION ${PKG_LIB_DESTINATION}
+    LIBRARY DESTINATION ${PKG_LIB_DESTINATION}
+    RUNTIME DESTINATION ${PKG_BIN_DESTINATION}
 )
 
 ## Install headers
 install(FILES include/serial/serial.h include/serial/v8stdint.h
-  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/serial)
+  DESTINATION ${PKG_INC_DESTINATION}/serial)
 
 ## Tests
-if(CATKIN_ENABLE_TESTING)
+if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
